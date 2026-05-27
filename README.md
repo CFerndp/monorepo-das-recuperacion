@@ -1,6 +1,6 @@
-# DAS Monorepo - Sistema de IA con Django y Next.js
+# DAS Monorepo - Sistema con Django y Next.js
 
-Monorepo completo para el proyecto DAS (Django AI System) que incluye frontend, backend y servicios de IA con Ollama.
+Monorepo completo para el proyecto DAS (Django System) que incluye frontend y backend.
 
 ## 📁 Estructura del Proyecto
 
@@ -31,9 +31,6 @@ cd monorepo
 
 # Copiar archivo de variables de entorno
 cp .env.example .env
-
-# Editar .env y configurar los modelos que quieres descargar
-# Por defecto usa: OLLAMA_MODELS=llama3.2:3b
 ```
 
 ### 2. Levantar todos los servicios
@@ -49,22 +46,12 @@ docker-compose logs -f
 docker-compose ps
 ```
 
-### 3. Esperar a que Ollama descargue los modelos
-
-La primera vez, Ollama descargará los modelos especificados en `.env`. Esto puede tardar varios minutos dependiendo del tamaño del modelo.
-
-```bash
-# Ver progreso de descarga de modelos
-docker-compose logs -f ollama-init
-```
-
-### 4. Acceder a los servicios
+### 3. Acceder a los servicios
 
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:8000
 - **API Docs:** http://localhost:8000/api/docs/
 - **Django Admin:** http://localhost:8000/admin
-- **Ollama API:** http://localhost:11434
 
 ## 🛠️ Servicios
 
@@ -83,39 +70,6 @@ docker-compose logs -f ollama-init
 - **Database:** `das_db`
 - **Usuario:** `das_user`
 - **Password:** `das_password`
-
-### Ollama (IA)
-- **Puerto:** 11434
-- **Modelos:** Configurables via `OLLAMA_MODELS` en `.env`
-- **API:** http://localhost:11434/api
-
-### Ollama Init
-- Servicio de inicialización que descarga automáticamente los modelos configurados
-- Se ejecuta una sola vez al inicio
-- Configurable via variable `OLLAMA_MODELS`
-
-## ⚙️ Configuración de Modelos de IA
-
-Edita el archivo `.env` para configurar qué modelos descargar:
-
-```bash
-# Un solo modelo
-OLLAMA_MODELS=llama3.2:3b
-
-# Múltiples modelos (separados por comas)
-OLLAMA_MODELS=llama3.2:3b,mistral:7b,codellama:7b
-```
-
-### Modelos Recomendados
-
-| Modelo | Tamaño | Uso Recomendado |
-|--------|--------|-----------------|
-| `llama3.2:1b` | ~1GB | Más rápido, ideal para desarrollo |
-| `llama3.2:3b` | ~3GB | Balance entre velocidad y capacidad |
-| `llama3.2:7b` | ~7GB | Más capaz, requiere más recursos |
-| `mistral:7b` | ~7GB | Excelente para tareas generales |
-| `codellama:7b` | ~7GB | Optimizado para código |
-| `phi3:mini` | ~2GB | Modelo pequeño de Microsoft |
 
 ## 🔧 Comandos Útiles
 
@@ -171,25 +125,6 @@ docker-compose exec -T postgres psql -U das_user -d das_db < backup.sql
 
 # Ver logs de PostgreSQL
 docker-compose logs -f postgres
-```
-
-### Ollama
-
-```bash
-# Listar modelos instalados
-docker-compose exec ollama ollama list
-
-# Descargar un modelo manualmente
-docker-compose exec ollama ollama pull llama3.2:3b
-
-# Eliminar un modelo
-docker-compose exec ollama ollama rm llama3.2:3b
-
-# Probar un modelo
-docker-compose exec ollama ollama run llama3.2:3b "Hola, ¿cómo estás?"
-
-# Ver logs de Ollama
-docker-compose logs -f ollama
 ```
 
 ### Reconstruir Servicios
@@ -257,10 +192,6 @@ npm start
 ### Bases de datos
 - **PostgreSQL:** localhost:5432
 
-### IA
-- **Ollama API:** http://localhost:11434
-- **Ollama Health:** http://localhost:11434/api/tags
-
 ## 🔐 Seguridad
 
 ### Para Producción
@@ -302,22 +233,9 @@ docker stats
 
 # Healthcheck de backend
 curl http://localhost:8000/health/
-
-# Healthcheck de Ollama
-curl http://localhost:11434/api/tags
 ```
 
 ## 🐛 Troubleshooting
-
-### El modelo no se descarga
-
-```bash
-# Ver logs del servicio de inicialización
-docker-compose logs ollama-init
-
-# Descargar manualmente
-docker-compose exec ollama ollama pull llama3.2:3b
-```
 
 ### Error de conexión a PostgreSQL
 
@@ -332,20 +250,10 @@ docker-compose logs postgres
 docker-compose exec postgres pg_isready -U das_user -d das_db
 ```
 
-### Backend no puede conectarse a Ollama
-
-```bash
-# Verificar que Ollama está corriendo
-docker-compose ps ollama
-
-# Probar conexión desde el backend
-docker-compose exec backend curl http://ollama:11434/api/tags
-```
-
 ### Puertos en uso
 
 ```bash
-# Liberar puerto 3000, 8000, 5432 o 11434
+# Liberar puerto 3000, 8000 o 5432
 # En Linux/Mac:
 sudo lsof -ti:3000 | xargs kill -9
 
@@ -372,9 +280,6 @@ docker-compose up -d --build
 Copia `.env.example` a `.env` y ajusta según tus necesidades:
 
 ```bash
-# Modelos de IA
-OLLAMA_MODELS=llama3.2:3b
-
 # Base de datos
 POSTGRES_DB=das_db
 POSTGRES_USER=das_user
@@ -415,7 +320,6 @@ docker-compose exec frontend npm run lint
 
 - [Frontend README](./frontend/README.md)
 - [Backend README](./backend/README.md)
-- [Ollama Documentation](https://ollama.ai/docs)
 - [Django REST Framework](https://www.django-rest-framework.org/)
 - [Next.js Documentation](https://nextjs.org/docs)
 
@@ -437,8 +341,6 @@ Este proyecto es parte del curso DAS de Comillas.
 Después de levantar los servicios:
 
 1. ✅ Crear superusuario en Django
-2. ✅ Verificar que los modelos de Ollama se descargaron
-3. ✅ Probar la API desde http://localhost:8000/api/docs/
-4. ✅ Verificar el frontend en http://localhost:3000
-5. ✅ Integrar la comunicación frontend-backend
-6. ✅ Implementar funcionalidades de chat con IA
+2. ✅ Probar la API desde http://localhost:8000/api/docs/
+3. ✅ Verificar el frontend en http://localhost:3000
+4. ✅ Integrar la comunicación frontend-backend

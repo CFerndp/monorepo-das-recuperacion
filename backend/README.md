@@ -7,7 +7,6 @@ Backend service para la aplicación DAS (Django AI System) con soporte para Post
 - Django 6.0 con Django REST Framework
 - Autenticación JWT con refresh tokens
 - Soporte para PostgreSQL (Docker) y SQLite (local)
-- Integración con Ollama para AI
 - Documentación automática de API con drf-spectacular
 - CORS habilitado para desarrollo
 
@@ -102,9 +101,6 @@ POSTGRES_PORT=5432
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Ollama
-OLLAMA_HOST=http://localhost:7869
 ```
 
 ## 📚 Estructura del Proyecto
@@ -116,10 +112,6 @@ backend/
 │   │   ├── settings.py   # Configuración (incluye DB)
 │   │   ├── urls.py       # URLs principales
 │   │   └── wsgi.py
-│   ├── ai/               # App de inteligencia artificial
-│   ├── chats/            # App de gestión de chats
-│   ├── users/            # App de usuarios
-│   ├── usage/            # App de métricas de uso
 │   ├── healthcheck/      # App de health checks
 │   └── manage.py         # CLI de Django
 ├── pyproject.toml        # Dependencias del proyecto
@@ -128,13 +120,6 @@ backend/
 ```
 
 ## 🔌 Endpoints Principales
-
-### Autenticación
-
-- `POST /api/auth/register/` - Registro de usuario
-- `POST /api/auth/login/` - Login (obtener tokens JWT)
-- `POST /api/auth/refresh/` - Refrescar access token
-- `POST /api/auth/logout/` - Logout (blacklist token)
 
 ### Health Check
 
@@ -255,7 +240,6 @@ docker-compose logs -f postgres
 - **Admin Django:** http://localhost:8000/admin
 - **API Docs:** http://localhost:8000/api/docs/
 - **PostgreSQL:** localhost:5432
-- **Ollama:** http://localhost:7869
 
 ## 🤝 Contribuir
 
