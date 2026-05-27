@@ -1,253 +1,289 @@
-# Backend DAS - Django REST API
+# Backend — API REST con Django
 
-Backend service para la aplicación DAS (Django AI System) con soporte para PostgreSQL y SQLite.
+Este es el backend del proyecto DAS. Es una API REST construida con Django y Django REST Framework (DRF).
 
-## 🚀 Características
+## 🧰 Qué tecnologías usa
 
-- Django 6.0 con Django REST Framework
-- Autenticación JWT con refresh tokens
-- Soporte para PostgreSQL (Docker) y SQLite (local)
-- Documentación automática de API con drf-spectacular
-- CORS habilitado para desarrollo
+| Tecnología | Para qué sirve |
+|---|---|
+| **Django 6** | Framework web de Python |
+| **Django REST Framework** | Herramientas para construir APIs REST |
+| **SimpleJWT** | Autenticación con tokens JWT |
+| **drf-spectacular** | Genera documentación Swagger automáticamente |
+| **uv** | Gestor de dependencias Python (más rápido que pip) |
+| **SQLite** | Base de datos para desarrollo local (sin instalar nada) |
+| **PostgreSQL** | Base de datos cuando se despliega con Docker |
 
-## 📋 Requisitos
+---
+
+## 🚀 Puesta en marcha en local
+
+### Prerrequisitos
 
 - Python 3.14+
-- PostgreSQL 16+ (para producción/Docker)
-- uv (gestor de paquetes Python)
-
-## 🛠️ Instalación
-
-### Desarrollo Local (SQLite)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ```bash
-# Instalar dependencias
+python --version   # debe ser 3.14+
+uv --version       # cualquier versión
+```
+
+---
+
+### Paso 1 — Instalar dependencias
+
+Desde la carpeta `backend/`:
+
+```bash
 uv sync
+```
 
-# Activar el entorno virtual
-source .venv/bin/activate
+Esto crea un entorno virtual en `.venv/` e instala todas las librerías de `pyproject.toml`. Solo necesitas ejecutarlo una vez (o cuando cambien las dependencias).
 
-# Crear archivo .env (opcional para desarrollo local)
-cp .env.example .env
+> 💡 No necesitas activar el entorno virtual. Con `uv run` puedes ejecutar cualquier comando directamente y uv se encarga de usarlo de forma transparente.
 
-# Ejecutar migraciones
+---
+
+### Paso 2 — Crear la base de datos
+
+En local usamos **SQLite**: un fichero `.sqlite3` que Django gestiona solo. No necesitas instalar ningún servidor de base de datos.
+
+Ejecuta las migraciones para crear las tablas:
+
+```bash
 cd restApi
-python manage.py migrate
-
-# Crear superusuario
-python manage.py createsuperuser
-
-# Ejecutar servidor de desarrollo
-python manage.py runserver
+uv run python manage.py migrate
 ```
 
-El servidor estará disponible en `http://localhost:8000`
+Esto crea el archivo `restApi/db.sqlite3`. Si lo borras accidentalmente, solo tienes que ejecutar `migrate` de nuevo.
 
-### Con Docker (PostgreSQL)
+---
+
+### Paso 3 — Arrancar el servidor
 
 ```bash
-# Desde la raíz del monorepo
-docker-compose up -d backend
-
-# Ver logs
-docker-compose logs -f backend
-
-# Ejecutar migraciones (si es necesario)
-docker-compose exec backend python restApi/manage.py migrate
-
-# Crear superusuario
-docker-compose exec backend python restApi/manage.py createsuperuser
+uv run python manage.py runserver
 ```
 
-## 🗄️ Configuración de Base de Datos
+El servidor estará disponible en **http://localhost:8000**.
 
-### SQLite (Desarrollo Local)
+El servidor de desarrollo **se reinicia solo** cuando guardas cambios en el código. No necesitas pararlo y volver a arrancarlo.
 
-Por defecto, el proyecto usa SQLite para desarrollo local. No requiere configuración adicional.
+---
 
-### PostgreSQL (Docker/Producción)
-
-Para usar PostgreSQL, configura las siguientes variables de entorno:
-
-```bash
-USE_POSTGRES=true
-POSTGRES_DB=das_db
-POSTGRES_USER=das_user
-POSTGRES_PASSWORD=das_password
-POSTGRES_HOST=postgres  # o localhost si está fuera de Docker
-POSTGRES_PORT=5432
-```
-
-El servicio de PostgreSQL está configurado en `docker-compose.yml` con:
-- **Usuario:** das_user
-- **Password:** das_password
-- **Base de datos:** das_db
-- **Puerto:** 5432
-
-## 🔧 Variables de Entorno
-
-Copia `.env.example` a `.env` y ajusta según tus necesidades:
-
-```bash
-# Database
-USE_POSTGRES=false                    # true para PostgreSQL, false para SQLite
-POSTGRES_DB=das_db
-POSTGRES_USER=das_user
-POSTGRES_PASSWORD=das_password
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-
-# Django
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
-## 📚 Estructura del Proyecto
+## 📁 Estructura del proyecto
 
 ```
 backend/
-├── restApi/               # Proyecto Django principal
-│   ├── restApi/          # Configuración del proyecto
-│   │   ├── settings.py   # Configuración (incluye DB)
-│   │   ├── urls.py       # URLs principales
-│   │   └── wsgi.py
-│   ├── healthcheck/      # App de health checks
-│   └── manage.py         # CLI de Django
-├── pyproject.toml        # Dependencias del proyecto
-├── Dockerfile            # Configuración Docker
-└── .env.example          # Ejemplo de variables de entorno
+├── restApi/                    # Raíz del proyecto Django
+│   ├── restApi/                # Paquete de configuración principal
+│   │   ├── settings.py         # Configuración global (apps, base de datos, JWT...)
+│   │   ├── urls.py             # Rutas URL raíz del proyecto
+│   │   └── wsgi.py             # Punto de entrada para servidores web
+│   ├── healthcheck/            # App de ejemplo incluida en el proyecto
+│   │   ├── views.py            # Lógica de la vista
+│   │   ├── urls.py             # Rutas de esta app
+│   │   └── models.py           # Modelos de base de datos (vacío en este caso)
+│   ├── db.sqlite3              # Base de datos SQLite (solo en local)
+│   └── manage.py               # CLI de Django
+├── pyproject.toml              # Lista de dependencias del proyecto
+├── uv.lock                     # Versiones exactas de dependencias (no tocar)
+├── .python-version             # Versión de Python que usa el proyecto
+└── Dockerfile                  # Para despliegue con Docker (no para desarrollo)
 ```
 
-## 🔌 Endpoints Principales
+> 📌 En Django, el código se organiza en **apps**. Cada app agrupa los modelos, vistas y URLs de una funcionalidad concreta. La app `healthcheck` es un ejemplo sencillo ya incluido.
 
-### Health Check
+---
 
-- `GET /health/` - Estado del servicio
+## 📡 Endpoints disponibles
 
-### Documentación API
+Con el servidor arrancado, tienes acceso a:
 
-- `GET /api/schema/` - Schema OpenAPI
-- `GET /api/docs/` - Documentación interactiva (Swagger UI)
+| URL | Descripción |
+|---|---|
+| http://localhost:8000/api/healthcheck/ | Comprueba que la API responde |
+| http://localhost:8000/api/docs | Documentación interactiva (Swagger UI) |
+| http://localhost:8000/api/schema/ | Schema OpenAPI en JSON |
+| http://localhost:8000/admin | Panel de administración de Django |
 
-## 🐳 Docker
+La **documentación Swagger** (`/api/docs`) es muy útil: lista todos los endpoints disponibles y permite probarlos directamente desde el navegador, sin necesitar Postman ni similar.
 
-### Construir imagen
+---
 
-```bash
-docker build -t backend-das:latest ./backend
+## 🗄️ Base de datos
+
+### En local: SQLite (sin configuración)
+
+Por defecto Django usa SQLite. No necesitas instalar nada, el archivo `db.sqlite3` se crea automáticamente. Es perfecto para desarrollo.
+
+### En Docker: PostgreSQL
+
+Cuando arrancas con `docker-compose up`, el backend se conecta automáticamente a un contenedor de PostgreSQL. Esto lo controla la variable de entorno `USE_POSTGRES=true`, definida en `docker-compose.yml`.
+
+La lógica está en `settings.py`:
+
+```python
+if os.getenv("USE_POSTGRES", "false").lower() == "true":
+    # Configuración para PostgreSQL (Docker)
+    DATABASES = { "default": { "ENGINE": "django.db.backends.postgresql", ... } }
+else:
+    # Configuración para SQLite (local)
+    DATABASES = { "default": { "ENGINE": "django.db.backends.sqlite3", ... } }
 ```
 
-### Ejecutar contenedor standalone
+No necesitas tocar nada: en local siempre usa SQLite, en Docker siempre usa PostgreSQL.
+
+---
+
+## ⚙️ Variables de entorno
+
+### La regla de oro: `.env.example` vs `.env`
+
+| Fichero | ¿Se sube al repo? | Para qué sirve |
+|---|---|---|
+| `.env.example` | ✅ Sí | Plantilla con todas las variables disponibles (sin valores reales) |
+| `.env` | ❌ No (está en `.gitignore`) | Tu configuración local con los valores reales |
+
+El flujo es siempre el mismo: copias `.env.example` → `.env`, rellenas tus valores, y Django lo carga automáticamente al arrancar.
+
+---
+
+### ¿Cuándo necesitas crear un `.env`?
+
+**En desarrollo local normal: nunca.** Django usa SQLite por defecto y arranca sin ninguna configuración extra. No necesitas ningún fichero `.env`.
+
+Solo necesitas crear un `.env` si quieres conectar Django a un **PostgreSQL local** (en vez de SQLite):
 
 ```bash
-docker run -p 8000:8000 \
-  -e USE_POSTGRES=true \
-  -e POSTGRES_HOST=postgres \
-  -e POSTGRES_DB=das_db \
-  -e POSTGRES_USER=das_user \
-  -e POSTGRES_PASSWORD=das_password \
-  backend-das:latest
+# Desde la raíz del monorepo
+cp backend/.env.example backend/.env
 ```
 
-### Con docker-compose
+Luego edita `backend/.env` y cambia las variables que necesites:
 
 ```bash
-# Levantar backend con PostgreSQL
-docker-compose up -d backend postgres
-
-# Ver logs
-docker-compose logs -f backend
-
-# Acceder al shell de Django
-docker-compose exec backend python restApi/manage.py shell
-
-# Ejecutar migraciones
-docker-compose exec backend python restApi/manage.py migrate
-
-# Crear superusuario
-docker-compose exec backend python restApi/manage.py createsuperuser
+USE_POSTGRES=true
+POSTGRES_HOST=localhost   # tu PostgreSQL local
+POSTGRES_DB=das_db
+POSTGRES_USER=das_user
+POSTGRES_PASSWORD=tu_password
 ```
 
-## 🧪 Testing
+---
+
+### Variables disponibles
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `USE_POSTGRES` | `false` | `true` para PostgreSQL, `false` para SQLite |
+| `POSTGRES_DB` | `das_db` | Nombre de la base de datos |
+| `POSTGRES_USER` | `das_user` | Usuario de PostgreSQL |
+| `POSTGRES_PASSWORD` | `das_password` | Contraseña de PostgreSQL |
+| `POSTGRES_HOST` | `postgres` | Host de PostgreSQL (`localhost` en local, `postgres` en Docker) |
+| `POSTGRES_PORT` | `5432` | Puerto de PostgreSQL |
+
+> 💡 Todos los valores tienen un **default razonable**, por eso funciona sin `.env`. El fichero solo es necesario cuando quieres sobreescribir esos defaults.
+
+---
+
+## 🔧 Comandos de referencia rápida
+
+### Dependencias con uv
 
 ```bash
-# Ejecutar tests
-python restApi/manage.py test
-
-# Con coverage
-coverage run --source='.' restApi/manage.py test
-coverage report
-```
-
-## 🔍 Linting
-
-```bash
-# Ejecutar pylint
-pylint restApi/
-```
-
-## 📊 Migraciones
-
-```bash
-# Crear migraciones
-python manage.py makemigrations
-
-# Aplicar migraciones
-python manage.py migrate
-
-# Ver estado de migraciones
-python manage.py showmigrations
-
-# Ver SQL de una migración
-python manage.py sqlmigrate app_name migration_name
-```
-
-## 🔐 Seguridad
-
-- Cambia `SECRET_KEY` en producción
-- Configura `DEBUG=False` en producción
-- Actualiza `ALLOWED_HOSTS` con tus dominios
-- Usa contraseñas seguras para PostgreSQL
-- Implementa HTTPS en producción
-- Revisa y ajusta los tiempos de expiración de JWT
-
-## 📝 Comandos Útiles
-
-```bash
-# Instalar nueva dependencia
-uv add nombre-paquete
-
-# Actualizar dependencias
+# Instalar todas las dependencias (primera vez o tras cambios en pyproject.toml)
 uv sync
 
-# Ver información de la base de datos
-docker-compose exec postgres psql -U das_user -d das_db
+# Añadir una nueva librería
+uv add nombre-libreria
 
-# Backup de la base de datos
-docker-compose exec postgres pg_dump -U das_user das_db > backup.sql
-
-# Restaurar backup
-docker-compose exec -T postgres psql -U das_user -d das_db < backup.sql
-
-# Ver logs de PostgreSQL
-docker-compose logs -f postgres
+# Eliminar una librería
+uv remove nombre-libreria
 ```
 
-## 🌐 URLs de Desarrollo
+### Base de datos (desde `restApi/`)
 
-- **Backend API:** http://localhost:8000
-- **Admin Django:** http://localhost:8000/admin
-- **API Docs:** http://localhost:8000/api/docs/
-- **PostgreSQL:** localhost:5432
+```bash
+# Tras modificar un models.py, genera el fichero de migración
+uv run python manage.py makemigrations
 
-## 🤝 Contribuir
+# Aplica las migraciones pendientes a la base de datos
+uv run python manage.py migrate
 
-1. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-2. Commit tus cambios: `git commit -am 'Añadir nueva funcionalidad'`
-3. Push a la rama: `git push origin feature/nueva-funcionalidad`
-4. Crea un Pull Request
+# Muestra el estado de todas las migraciones
+uv run python manage.py showmigrations
+```
 
-## 📄 Licencia
+### Superusuario
 
-Este proyecto es parte del curso DAS de Comillas.
+```bash
+# Crea un usuario administrador para acceder a /admin
+uv run python manage.py createsuperuser
+```
+
+### Consola interactiva
+
+```bash
+# Abre una consola Python con todo el contexto de Django cargado
+# Útil para probar modelos y queries directamente
+uv run python manage.py shell
+```
+
+---
+
+## ➕ Crear una nueva app Django
+
+Cuando quieras añadir una nueva funcionalidad, crea una app nueva:
+
+```bash
+# Desde la carpeta restApi/
+uv run python manage.py startapp nombre_app
+```
+
+Después necesitas hacer tres cosas:
+
+**1. Registrar la app en `settings.py`:**
+```python
+INSTALLED_APPS = [
+    ...
+    'nombre_app',   # añade esta línea
+]
+```
+
+**2. Crear las URLs de la app en `nombre_app/urls.py`:**
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.mi_vista, name='mi-vista'),
+]
+```
+
+**3. Incluir esas URLs en `restApi/urls.py`:**
+```python
+from django.urls import include, path
+
+urlpatterns = [
+    ...
+    path('api/nombre_app/', include('nombre_app.urls')),
+]
+```
+
+---
+
+## 🐳 Despliegue con Docker
+
+El backend forma parte del `docker-compose.yml` de la raíz del monorepo. Para arrancarlo junto con el frontend y la base de datos, consulta la [guía de Docker en el README raíz](../README.md#-despliegue-con-docker-compose).
+
+```bash
+# Desde la raíz del monorepo
+docker-compose up -d
+```
+
+Si solo quieres arrancar el backend y la base de datos (sin el frontend):
+
+```bash
+docker-compose up -d backend postgres
+```

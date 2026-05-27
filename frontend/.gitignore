@@ -30,8 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
+# .env.local contiene tu configuración local y NUNCA se sube al repo
 .env*
+# .env.example es la plantilla compartida con el equipo y SÍ se sube
+!.env.example
 
 # vercel
 .vercel

@@ -29,6 +29,10 @@ COPY . .
 # Next.js recopila datos de telemetría anónimos, puedes desactivarlo
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# NEXT_PUBLIC_* vars deben estar disponibles en tiempo de build
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build de la aplicación
 RUN npm run build
 
